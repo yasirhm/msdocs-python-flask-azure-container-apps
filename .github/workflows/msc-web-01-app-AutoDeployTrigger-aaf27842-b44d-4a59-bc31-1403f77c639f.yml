@@ -1,0 +1,45 @@
+name: Trigger auto deployment for msc-web-01-app
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ main ]
+    paths:
+    - '**'
+    - '.github/workflows/msc-web-01-app-AutoDeployTrigger-aaf27842-b44d-4a59-bc31-1403f77c639f.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.MSCWEB01APP_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }}
+          _dockerfilePathKey_: _dockerfilePath_
+          _targetLabelKey_: _targetLabel_
+          registryUrl: mscdevregistry.azurecr.io
+          registryUsername: ${{ secrets.MSCWEB01APP_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.MSCWEB01APP_REGISTRY_PASSWORD }}
+          containerAppName: msc-web-01-app
+          resourceGroup: mscpydev-rg
+          imageToBuild: mscdevregistry.azurecr.io/msc-web-01-app:${{ github.sha }}
+          
+            
+
+     
+
